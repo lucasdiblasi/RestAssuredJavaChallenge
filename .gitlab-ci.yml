@@ -1,0 +1,32 @@
+image: maven:latest
+
+stages:
+  - test
+  - report
+
+before_script:
+  - apt-get update -qy
+  - apt-get install -y openjdk-8-jdk
+
+test:
+  stage: test
+  script:
+    - mvn clean test || true # Execute os testes e continue mesmo se houver falha
+  artifacts:
+    paths:
+      - target/surefire-reports
+      - target/allure-results # Arquivos de relatório dos testes
+
+generate_report:
+  stage: report
+  script:
+    - mvn allure:report # Gerar o relatório Allure
+    - mvn verify
+  artifacts:
+    paths:
+      - target/allure-results # Relatório Allure
+      - target/surefire-reports
+    when: always
+    reports:
+      junit:
+        - target/surefire-reports/*.xml
